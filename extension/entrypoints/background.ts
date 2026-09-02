@@ -1,6 +1,7 @@
 import { captureAndSend } from '../lib/capture';
 import { getPendingSync, clearPendingSync, getSettings, getLicense } from '../lib/storage';
 import { syncPacks, verifyLicense } from '../lib/license';
+import { isPaidTier } from '../lib/types';
 
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(() => {
@@ -83,7 +84,7 @@ export default defineBackground(() => {
       }
     }
     const settings = await getSettings();
-    if (settings.syncEnabled && license.valid) {
+    if (settings.syncEnabled && isPaidTier(license)) {
       try {
         const pending = await getPendingSync();
         if (pending.length) {

@@ -3,6 +3,7 @@ import {
   FREE_DAILY_SEND_LIMIT,
   FREE_HISTORY_LIMIT,
   PRO_HISTORY_LIMIT,
+  isPaidTier,
   type AppSettings,
   type ContextPack,
   type LicenseState,
@@ -69,9 +70,7 @@ export async function incrementSendCount(): Promise<UsageDay> {
 
 export async function getSendLimit(): Promise<number> {
   const license = await getLicense();
-  if (license.tier === 'pro' || license.tier === 'team') {
-    if (license.valid) return Number.POSITIVE_INFINITY;
-  }
+  if (isPaidTier(license)) return Number.POSITIVE_INFINITY;
   return FREE_DAILY_SEND_LIMIT;
 }
 
@@ -92,8 +91,7 @@ export async function getPacks(): Promise<ContextPack[]> {
 
 export async function savePack(pack: ContextPack): Promise<ContextPack[]> {
   const license = await getLicense();
-  const limit =
-    license.tier === 'free' || !license.valid ? FREE_HISTORY_LIMIT : PRO_HISTORY_LIMIT;
+  const limit = isPaidTier(license) ? PRO_HISTORY_LIMIT : FREE_HISTORY_LIMIT;
   const packs = await getPacks();
   const next = [pack, ...packs.filter((p) => p.id !== pack.id)].slice(0, limit);
   await browser.storage.local.set({ [KEYS.packs]: next });

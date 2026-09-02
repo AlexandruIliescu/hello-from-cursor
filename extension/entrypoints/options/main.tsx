@@ -25,6 +25,7 @@ import type {
   TeamSeat,
   TemplateId,
 } from '../../lib/types';
+import { isPaidTier } from '../../lib/types';
 import { TEMPLATE_LABELS } from '../../lib/templates';
 import { DESTINATION_LABELS } from '../../lib/destinations';
 import './options.css';
@@ -64,6 +65,8 @@ function OptionsApp() {
     const next = await saveSettings(partial);
     setSettings(next);
   }
+
+  const paid = license ? isPaidTier(license) : false;
 
   async function onVerify() {
     setBusy(true);
@@ -127,7 +130,7 @@ function OptionsApp() {
     setBusy(true);
     setStatus('');
     try {
-      if (!license || license.tier === 'free' || !license.valid) {
+      if (!license || !isPaidTier(license)) {
         setStatus('Multi-tab research packs are a Pro feature.');
         return;
       }
@@ -212,12 +215,17 @@ function OptionsApp() {
           </select>
         </label>
         <label>
-          Custom template (use {'{{title}}'}, {'{{url}}'}, {'{{body}}'})
+          Custom template (Pro — use {'{{title}}'}, {'{{url}}'}, {'{{body}}'})
           <textarea
             value={settings.customTemplate ?? ''}
             onChange={(e) => void updateSettings({ customTemplate: e.target.value })}
             rows={5}
-            placeholder="Analyze {{title}} from {{url}}:\n\n{{body}}"
+            disabled={!paid}
+            placeholder={
+              paid
+                ? 'Analyze {{title}} from {{url}}:\n\n{{body}}'
+                : 'Upgrade to Pro to use custom templates.'
+            }
           />
         </label>
       </section>
@@ -263,10 +271,14 @@ function OptionsApp() {
           <input
             type="checkbox"
             checked={settings.syncEnabled}
+            disabled={!paid}
             onChange={(e) => void updateSettings({ syncEnabled: e.target.checked })}
           />
           Enable sync for Pro/Team (requires API)
         </label>
+        {!paid && (
+          <p className="muted">Verify a Pro or Team license to enable cloud sync.</p>
+        )}
         <label>
           API base URL
           <input

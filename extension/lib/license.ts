@@ -1,5 +1,6 @@
 import { getLicense, getSettings, saveLicense } from './storage';
 import type { ContextPack, LicenseState, TeamSeat } from './types';
+import { isPaidTier } from './types';
 
 export interface LicenseVerifyResponse {
   valid: boolean;
@@ -73,7 +74,7 @@ export async function syncPacks(
   packs: ContextPack[],
 ): Promise<{ syncedIds: string[] }> {
   const license = await getLicense();
-  if (!license.valid || !license.licenseKey) {
+  if (!isPaidTier(license) || !license.licenseKey) {
     throw new Error('Pro or Team required for sync');
   }
   const url = await apiUrl('/v1/sync/packs');

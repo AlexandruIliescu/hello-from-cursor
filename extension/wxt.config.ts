@@ -32,10 +32,6 @@ export default defineConfig({
         128: 'icon-128.png',
       },
     },
-    options_ui: {
-      page: 'options.html',
-      open_in_tab: true,
-    },
     commands: {
       'capture-page': {
         suggested_key: {

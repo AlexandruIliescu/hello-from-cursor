@@ -46,6 +46,7 @@ export function buildPrompt(
   capture: PageCapture,
   templateId: TemplateId,
   customTemplate?: string,
+  allowCustom = false,
 ): string {
   const body = clip(
     templateId === 'selection' && capture.selection
@@ -53,7 +54,7 @@ export function buildPrompt(
       : capture.selection || capture.mainText,
   );
 
-  if (templateId === 'custom' && customTemplate?.trim()) {
+  if (templateId === 'custom' && allowCustom && customTemplate?.trim()) {
     return customTemplate
       .replaceAll('{{title}}', capture.title)
       .replaceAll('{{url}}', capture.url)

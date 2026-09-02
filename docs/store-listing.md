@@ -38,7 +38,7 @@ Productivity
 ## Publish steps
 1. Pay $5 Chrome Web Store developer registration
 2. `cd extension && npm run zip`
-3. Upload `extension/.output/chrome-mv3.zip` (or WXT zip output)
+3. Upload `extension/.output/contextdrop-0.1.0-chrome.zip` (from `npm run zip`)
 4. Attach privacy policy URL + screenshots
 5. Submit for review
 

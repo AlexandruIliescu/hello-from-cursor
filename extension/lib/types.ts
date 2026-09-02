@@ -65,3 +65,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   apiBaseUrl: 'http://localhost:8787',
   syncEnabled: false,
 };
+
+export function isPaidTier(license: LicenseState): boolean {
+  return license.valid && (license.tier === 'pro' || license.tier === 'team');
+}

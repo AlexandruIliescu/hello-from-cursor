@@ -16,6 +16,7 @@ import type {
   LicenseState,
   TemplateId,
 } from '../../lib/types';
+import { isPaidTier } from '../../lib/types';
 
 export default function App() {
   const [license, setLicense] = useState<LicenseState | null>(null);
@@ -37,7 +38,9 @@ export default function App() {
     ]);
     setLicense(l);
     setPacks(p.slice(0, 8));
-    setTemplateId(s.defaultTemplate);
+    setTemplateId(
+      s.defaultTemplate === 'custom' && !isPaidTier(l) ? 'article' : s.defaultTemplate,
+    );
     setDestination(s.defaultDestination);
     setRemaining(gate.remaining);
   }, []);
@@ -52,6 +55,15 @@ export default function App() {
     if (license.tier === 'team' && license.valid) return 'Team';
     return 'Free';
   }, [license]);
+
+  const paid = license ? isPaidTier(license) : false;
+  const templateOptions = useMemo(
+    () =>
+      (Object.keys(TEMPLATE_LABELS) as TemplateId[]).filter(
+        (id) => id !== 'custom' || paid,
+      ),
+    [paid],
+  );
 
   async function onCapture() {
     setBusy(true);
@@ -140,7 +152,7 @@ export default function App() {
       <label className="field">
         <span>Template</span>
         <select value={templateId} onChange={(e) => setTemplateId(e.target.value as TemplateId)}>
-          {(Object.keys(TEMPLATE_LABELS) as TemplateId[]).map((id) => (
+          {templateOptions.map((id) => (
             <option key={id} value={id}>
               {TEMPLATE_LABELS[id]}
             </option>

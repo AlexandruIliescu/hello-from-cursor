@@ -2,11 +2,13 @@ import { buildPrompt, detectTemplate, extractPageContent } from './templates';
 import { sendToDestination } from './destinations';
 import {
   canSend,
+  getLicense,
   getSettings,
   incrementSendCount,
   savePack,
 } from './storage';
 import type { ContextPack, DestinationId, PageCapture, TemplateId } from './types';
+import { isPaidTier } from './types';
 
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -34,11 +36,18 @@ export async function makePack(
   templateId?: TemplateId,
 ): Promise<ContextPack> {
   const settings = await getSettings();
-  const tpl =
+  const license = await getLicense();
+  let tpl =
     templateId ??
-    detectTemplate(capture.url, Boolean(capture.selection)) ??
-    settings.defaultTemplate;
-  const prompt = buildPrompt(capture, tpl, settings.customTemplate);
+    (capture.selection
+      ? 'selection'
+      : settings.defaultTemplate === 'article'
+        ? detectTemplate(capture.url, false)
+        : settings.defaultTemplate);
+  if (tpl === 'custom' && !isPaidTier(license)) {
+    tpl = 'article';
+  }
+  const prompt = buildPrompt(capture, tpl, settings.customTemplate, isPaidTier(license));
   const pack: ContextPack = {
     id: uid(),
     title: capture.title,
