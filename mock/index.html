@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ContextDrop — Clickable Mock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --panel-2: #243044;
+      --accent: #3d9cf0;
+      --accent-2: #5eead4;
+      --text: #e8eef6;
+      --muted: #8b9bb0;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --radius: 12px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1e3a5f 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #134e4a 0%, transparent 50%),
+        var(--bg);
+    }
+    .shell {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .brand { color: var(--accent-2); font-weight: 700; }
+    .sub { color: var(--muted); margin: 0 0 28px; line-height: 1.5; }
+    .page-card {
+      background: var(--panel);
+      border: 1px solid #2d3b50;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    }
+    .page-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--panel-2);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #4b5563; }
+    .dot.r { background: #f87171; }
+    .dot.y { background: #fbbf24; }
+    .dot.g { background: #34d399; }
+    .article { padding: 28px 32px 40px; }
+    .article h2 { margin: 0 0 12px; font-size: 1.4rem; }
+    .article p { color: #c5d0de; line-height: 1.65; margin: 0 0 14px; }
+    .article pre {
+      background: #0b1220;
+      border-radius: 8px;
+      padding: 14px;
+      overflow: auto;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #a5f3fc;
+    }
+    .nav-noise { color: var(--muted); font-size: 12px; margin-bottom: 18px; }
+    .ext {
+      background: var(--panel);
+      border: 1px solid #2d3b50;
+      border-radius: var(--radius);
+      padding: 18px;
+      position: sticky;
+      top: 24px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.4);
+    }
+    .ext h3 { margin: 0 0 4px; font-size: 1.05rem; }
+    .ext .hint { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 6px; }
+    select, textarea, button {
+      width: 100%;
+      font-family: var(--font);
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    textarea { min-height: 160px; resize: vertical; font-family: var(--mono); font-size: 12px; line-height: 1.45; }
+    .actions { display: grid; gap: 8px; margin-top: 14px; }
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      border: none;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: linear-gradient(135deg, var(--accent), #2563eb); }
+    button.secondary { background: #334155; }
+    button.ghost { background: transparent; border: 1px solid #475569; }
+    .toast {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(52, 211, 153, .12);
+      color: var(--ok);
+      font-size: 13px;
+      display: none;
+    }
+    .toast.show { display: block; }
+    .steps { display: flex; gap: 8px; margin-bottom: 14px; }
+    .step {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      padding: 6px;
+      border-radius: 999px;
+      background: #0f172a;
+      color: var(--muted);
+    }
+    .step.on { background: rgba(61,156,240,.2); color: var(--accent); font-weight: 600; }
+    .limit { font-size: 12px; color: var(--warn); margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div>
+      <h1><span class="brand">ContextDrop</span> mock</h1>
+      <p class="sub">Clickable validation of the one-click flow: capture a noisy page → clean prompt pack → send to ChatGPT or copy. This is not the extension; it proves the UX before build.</p>
+      <div class="page-card">
+        <div class="page-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span>example.com/blog/why-rag-fails</span>
+        </div>
+        <div class="article" id="fake-page">
+          <div class="nav-noise">Home · Products · Pricing · Blog · Login · Cookie banner · Subscribe newsletter</div>
+          <h2>Why RAG pipelines fail in production</h2>
+          <p>Retrieval-augmented generation looks simple in demos, then collapses under messy chunking, stale indexes, and prompts that ignore source provenance.</p>
+          <p>Teams paste entire docs into ChatGPT and burn context on navigation chrome instead of the three paragraphs that matter.</p>
+          <pre>def retrieve(q, k=8):
+    hits = index.search(embed(q), k)
+    return rerank(hits, q)[:3]</pre>
+          <p>Related: 12 other posts · Footer links · Share widgets</p>
+        </div>
+      </div>
+    </div>
+
+    <aside class="ext" id="popup">
+      <div class="steps">
+        <div class="step on" id="s1">1 Capture</div>
+        <div class="step" id="s2">2 Pack</div>
+        <div class="step" id="s3">3 Send</div>
+      </div>
+      <h3>ContextDrop</h3>
+      <p class="hint">Turn this page into AI-ready context.</p>
+
+      <label for="template">Template</label>
+      <select id="template">
+        <option value="article">Article / blog</option>
+        <option value="docs">Docs</option>
+        <option value="github">GitHub</option>
+        <option value="product">Product page</option>
+        <option value="selection">Selection only</option>
+      </select>
+
+      <label for="target">Send to</label>
+      <select id="target">
+        <option value="chatgpt">ChatGPT</option>
+        <option value="claude">Claude</option>
+        <option value="gemini">Gemini</option>
+        <option value="copy">Copy only</option>
+      </select>
+
+      <label for="preview">Prompt pack preview</label>
+      <textarea id="preview" readonly></textarea>
+
+      <div class="actions">
+        <button class="secondary" type="button" id="btn-capture">Capture page</button>
+        <button class="primary" type="button" id="btn-send">Send to AI</button>
+        <button class="ghost" type="button" id="btn-copy">Copy as prompt</button>
+      </div>
+      <p class="limit">Free mock: 10 sends/day · Pro unlocks sync &amp; multi-tab packs</p>
+      <div class="toast" id="toast"></div>
+    </aside>
+  </div>
+  <script>
+    const article = {
+      title: "Why RAG pipelines fail in production",
+      url: "https://example.com/blog/why-rag-fails",
+      body: `Retrieval-augmented generation looks simple in demos, then collapses under messy chunking, stale indexes, and prompts that ignore source provenance.
+
+Teams paste entire docs into ChatGPT and burn context on navigation chrome instead of the three paragraphs that matter.
+
+\`\`\`python
+def retrieve(q, k=8):
+    hits = index.search(embed(q), k)
+    return rerank(hits, q)[:3]
+\`\`\``
+    };
+
+    const templates = {
+      article: (d) => `Summarize the key claims and risks in this article. Cite the source URL.\n\n# ${d.title}\nSource: ${d.url}\n\n${d.body}`,
+      docs: (d) => `Explain this documentation and give a minimal working example.\n\n# ${d.title}\n${d.url}\n\n${d.body}`,
+      github: (d) => `Review this GitHub content. List issues, TODOs, and suggested next steps.\n\n# ${d.title}\n${d.url}\n\n${d.body}`,
+      product: (d) => `Extract product features, pricing signals, and differentiators.\n\n# ${d.title}\n${d.url}\n\n${d.body}`,
+      selection: (d) => `Focus only on the selected passage:\n\n${d.body.split("\n\n")[1]}`
+    };
+
+    const preview = document.getElementById("preview");
+    const toast = document.getElementById("toast");
+    const templateEl = document.getElementById("template");
+    const targetEl = document.getElementById("target");
+
+    function setStep(n) {
+      [1, 2, 3].forEach((i) => {
+        document.getElementById("s" + i).classList.toggle("on", i === n);
+      });
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2800);
+    }
+
+    function rebuild() {
+      preview.value = templates[templateEl.value](article);
+      setStep(2);
+    }
+
+    document.getElementById("btn-capture").addEventListener("click", () => {
+      rebuild();
+      showToast("Captured clean content (nav/footer stripped).");
+    });
+
+    templateEl.addEventListener("change", rebuild);
+
+    document.getElementById("btn-copy").addEventListener("click", async () => {
+      if (!preview.value) rebuild();
+      try {
+        await navigator.clipboard.writeText(preview.value);
+        setStep(3);
+        showToast("Copied prompt pack to clipboard.");
+      } catch {
+        showToast("Clipboard blocked in this preview — text is in the pack above.");
+      }
+    });
+
+    document.getElementById("btn-send").addEventListener("click", () => {
+      if (!preview.value) rebuild();
+      const map = {
+        chatgpt: "https://chatgpt.com/",
+        claude: "https://claude.ai/new",
+        gemini: "https://gemini.google.com/app",
+        copy: null
+      };
+      const url = map[targetEl.value];
+      setStep(3);
+      if (!url) {
+        showToast("Copy-only mode — use Copy as prompt.");
+        return;
+      }
+      showToast("Would open " + targetEl.value + " with the pack (mock).");
+      window.open(url, "_blank", "noopener,noreferrer");
+    });
+
+    rebuild();
+  </script>
+</body>
+</html>
